@@ -1,12 +1,11 @@
 const form = document.getElementById('urlForm');
-const urlInput = document.getElementById('url');
-const formButton = document.getElementById('urlFormButton');
-const tableBlock = document.getElementById('resultTable');
+const tableBody = document.getElementById('tableBody');
 
 let intervalRef = null;
 let isFormButtonDisabled = false;
 
 const toggleButton = () => {
+  const formButton = document.getElementById('urlFormButton');
   formButton.disabled = !isFormButtonDisabled;
   formButton.innerHTML = isFormButtonDisabled
     ? 'Load'
@@ -14,13 +13,34 @@ const toggleButton = () => {
   isFormButtonDisabled = !isFormButtonDisabled;
 }
 
+const insertMessagesIntoDOM = (table, messages, videoId) => {
+  tableBody.innerHTML = '';
+  const tableContainer = document.getElementById('resultContainer');
+  for (const message of messages) {
+    const newRow = table.insertRow();
+    const timestamp = message.time > 0 ? message.time.toFixed(0) : 0;
+    newRow.innerHTML = `      
+      <tr>
+        <td><a href="https://youtu.be/${videoId}?t=${timestamp}">${message.time_text}</a></td>
+        <td>${message.amount || '-'}</td>
+        <td>${message.author}</td>
+        <td>${message.message || ''}</td>
+      </tr>`;
+  }
+  tableContainer.style.display = 'block';
+
+}
+
 const fetchChatInfo = async (taskId) => {
+  const PREVIEW_LIMIT = 5000;
+  tableBody.innerHTML = '';
   const response = await fetch(`/chat/${taskId}`)
-  toggleButton();
   if (response.ok) {
     const data = await response.json();
-    const tableBody = document.getElementById('tableBody');
+
+    const total = document.getElementById('total');
     const downloadCsvButton = document.getElementById('downloadCsvButton');
+
     downloadCsvButton.onclick = async () => {
       const response = await fetch(`/chat/${taskId}/csv`);
       if (response.ok) {
@@ -35,19 +55,20 @@ const fetchChatInfo = async (taskId) => {
         URL.revokeObjectURL(url);
       }
     }
-    tableBody.innerHTML = '';
-    for (const message of data) {
-      const newRow = tableBody.insertRow();
-      newRow.innerHTML = `      
-      <tr>
-        <td><a href="https://youtu.be/${taskId}?t=${message.time > 0 ? message.time.toFixed(0) : 0}">${message.time_text}</a></td>
-        <td>${message.amount}</td>
-        <td>${message.author}</td>
-        <td>${message.message}</td>
-      </tr>`;
+    total.innerHTML = data.length;
+    if (data.length > PREVIEW_LIMIT) {
+      const loadAnyway = document.createElement('a');
+      loadAnyway.innerHTML = 'Show preview anyway';
+      loadAnyway.className = 'link-info';
+      loadAnyway.href = '#';
+      loadAnyway.onclick = () => insertMessagesIntoDOM(tableBody, data, taskId);
+      total.parentElement.insertAdjacentText('beforeend', `Preview for more than ${PREVIEW_LIMIT} messages is disabled by default. `)
+      total.parentElement.appendChild(loadAnyway);
+    } else {
+      insertMessagesIntoDOM(tableBody, data, taskId);
     }
-    tableBlock.style.display = 'block';
   }
+  toggleButton();
 }
 
 const checkTaskStatus = async (taskId) => {
@@ -62,6 +83,7 @@ const checkTaskStatus = async (taskId) => {
 form.onsubmit = async (e) => {
   e.preventDefault();
   toggleButton();
+  const urlInput = document.getElementById('url');
   const response = await fetch('/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

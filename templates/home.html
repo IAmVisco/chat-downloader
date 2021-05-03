@@ -7,15 +7,18 @@
         <hr>
         <form id="urlForm" class="pb-3">
             <label for="url">YouTube Link</label>
-            <div class="row m-3">
+            <div class="row my-3 mx-0">
                 <input type="text" class="form-control col" id="url" required>
-                <button type="submit" class="btn btn-primary col-3 ms-1" id="urlFormButton">Load</button>
+                <button type="submit" class="btn btn-primary col-3 ms-3" id="urlFormButton">Load</button>
             </div>
         </form>
 
-        <div id="resultTable" style="display: none">
-            <div class="row my-3">
-                <h3 class="col-10">Chat messages</h3>
+        <div id="resultContainer" style="display: block; overflow: auto;">
+            <div class="row my-3 mx-0">
+                <div class="col-10 px-0">
+                    <h3>Chat messages</h3>
+                    <small>Loaded <b id="total"></b> messages. </small>
+                </div>
                 <button class="btn btn-success col" id="downloadCsvButton">Download CSV</button>
             </div>
             <table class="table table-dark table-hover">
