@@ -1,16 +1,10 @@
-import csv
+import os
 from celery import Celery
-# from celery.signals import after_task_publish
 from chat_downloader import ChatDownloader
 
 celery = Celery(__name__, broker='redis://localhost:6379', backend='redis://localhost:6379')
-
-
-# @after_task_publish.connect
-# def update_sent_state(sender=None, headers=None, **kwargs):
-#     task = celery.tasks.get(sender)
-#     backend = task.backend if task else celery.backend
-#     backend.store_result(headers['id'], None, "SENT")
+celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
 
 
 @celery.task()
