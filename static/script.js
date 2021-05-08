@@ -101,8 +101,8 @@ const checkTaskStatus = async (taskId) => {
 
 const loadFormData = () => {
   const formData = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-  urlInput.value = formData.url;
-  scOnlyCheckbox.checked = formData.scOnly;
+  urlInput.value = formData.url || '';
+  scOnlyCheckbox.checked = formData.scOnly || true;
 };
 
 form.onsubmit = async (e) => {
