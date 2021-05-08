@@ -1,4 +1,9 @@
+const cacheKey = 'cachedFormData';
 const form = document.getElementById('urlForm');
+const urlInput = document.getElementById('url');
+const scOnlyCheckbox = document.getElementById('scOnly');
+const errorAlert = document.getElementById('errorAlert');
+
 const tableBody = document.getElementById('tableBody');
 
 let intervalRef = null;
@@ -11,7 +16,12 @@ const toggleButton = () => {
     ? 'Load'
     : `Loading... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
   isFormButtonDisabled = !isFormButtonDisabled;
-}
+};
+
+const showError = (message) => {
+  errorAlert.innerHTML = message;
+  errorAlert.style.display = 'block';
+};
 
 const insertMessagesIntoDOM = (table, messages, videoId) => {
   tableBody.innerHTML = '';
@@ -29,12 +39,12 @@ const insertMessagesIntoDOM = (table, messages, videoId) => {
   }
   tableContainer.style.display = 'block';
 
-}
+};
 
 const fetchChatInfo = async (taskId) => {
   const PREVIEW_LIMIT = 5000;
   tableBody.innerHTML = '';
-  const response = await fetch(`/chat/${taskId}`)
+  const response = await fetch(`/chat/${taskId}`);
   if (response.ok) {
     const data = await response.json();
 
@@ -54,41 +64,66 @@ const fetchChatInfo = async (taskId) => {
         a.click();
         URL.revokeObjectURL(url);
       }
-    }
+    };
+
     total.innerHTML = data.length;
+    if (!data.length) {
+      const tryDifferentHelperText = document.createElement('span');
+      tryDifferentHelperText.innerHTML = 'Maybe try different filters?';
+      total.parentElement.appendChild(tryDifferentHelperText);
+    }
     if (data.length > PREVIEW_LIMIT) {
-      const loadAnyway = document.createElement('a');
-      loadAnyway.innerHTML = 'Show preview anyway';
-      loadAnyway.className = 'link-info';
-      loadAnyway.href = '#';
-      loadAnyway.onclick = () => insertMessagesIntoDOM(tableBody, data, taskId);
-      total.parentElement.insertAdjacentText('beforeend', `Preview for more than ${PREVIEW_LIMIT} messages is disabled by default. `)
-      total.parentElement.appendChild(loadAnyway);
+      const loadAnywayLink = document.createElement('a');
+      loadAnywayLink.innerHTML = 'Show preview anyway';
+      loadAnywayLink.className = 'link-info';
+      loadAnywayLink.href = '#';
+      loadAnywayLink.onclick = () => insertMessagesIntoDOM(tableBody, data, taskId);
+      total.parentElement.insertAdjacentText('beforeend', `Preview for more than ${PREVIEW_LIMIT} messages is disabled by default. `);
+      total.parentElement.appendChild(loadAnywayLink);
     } else {
       insertMessagesIntoDOM(tableBody, data, taskId);
     }
+  } else {
+    const error = await response.json();
+    showError(error.msg);
   }
   toggleButton();
-}
+};
 
 const checkTaskStatus = async (taskId) => {
-  const response = await fetch(`/chat/status/${taskId}`)
-  const data = await response.json()
-  if (data.state !== 'PENDING') {
+  const response = await fetch(`/chat/status/${taskId}`);
+  const data = await response.json();
+  if (data.state !== 'SENT') {
     clearInterval(intervalRef);
     fetchChatInfo(taskId);
   }
-}
+};
+
+const loadFormData = () => {
+  const formData = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+  urlInput.value = formData.url;
+  scOnlyCheckbox.checked = formData.scOnly;
+};
 
 form.onsubmit = async (e) => {
   e.preventDefault();
   toggleButton();
-  const urlInput = document.getElementById('url');
+  errorAlert.style.display = 'none';
+  const body = JSON.stringify({ url: urlInput.value, scOnly: scOnlyCheckbox.checked });
+  localStorage.setItem(cacheKey, body);
+
   const response = await fetch('/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: urlInput.value }),
-  })
-  const data = await response.json();
-  intervalRef = setInterval(() => checkTaskStatus(data.id), 500);
-}
+    body,
+  });
+  if (response.ok) {
+    const data = await response.json();
+    intervalRef = setInterval(() => checkTaskStatus(data.id), 2000);
+  } else {
+    const error = await response.json();
+    showError(error.msg);
+  }
+};
+
+loadFormData();

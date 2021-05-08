@@ -5,15 +5,22 @@
     <div class="starter-template">
         <h1>Chat Downloader</h1>
         <hr>
-        <form id="urlForm" class="pb-3">
+        <form id="urlForm" class="pb-3 px-2">
             <label for="url">YouTube Link</label>
             <div class="row my-3 mx-0">
-                <input type="text" class="form-control col" id="url" required>
-                <button type="submit" class="btn btn-primary col-3 ms-3" id="urlFormButton">Load</button>
+                <input type="search" class="form-control col" id="url" required tabindex="1">
+                <button type="submit" class="btn btn-primary col-3 ms-3" id="urlFormButton" tabindex="3">Load</button>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="scOnly" checked tabindex="2">
+                <label class="form-check-label" for="scOnly">Super Chats only</label>
             </div>
         </form>
+        <div class="alert alert-danger" role="alert" id="errorAlert" style="display: none;">
+            Error alert
+        </div>
 
-        <div id="resultContainer" style="display: block; overflow: auto;">
+        <div id="resultContainer" class="px-2" style="display: block; overflow: auto;">
             <div class="row my-3 mx-0">
                 <div class="col-10 px-0">
                     <h3>Chat messages</h3>
