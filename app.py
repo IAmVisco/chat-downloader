@@ -87,3 +87,8 @@ def start_chat_task():
 
 if __name__ == '__main__':
     app.run()
+
+
+# ROADMAP:
+# Come back later notif
+# Browser notifs?

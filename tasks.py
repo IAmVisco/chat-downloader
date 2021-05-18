@@ -1,5 +1,6 @@
 import os
 from time import time
+from datetime import timedelta
 from celery import Celery
 from celery.signals import after_task_publish
 from chat_downloader import ChatDownloader
@@ -9,6 +10,7 @@ from youtube_dl import YoutubeDL
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
 celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+celery.conf.result_expires = timedelta(weeks=1)
 
 CUSTOM_SENT_STATE = 'SENT'
 
