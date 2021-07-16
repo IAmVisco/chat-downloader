@@ -14,12 +14,12 @@ const toggleButton = () => {
   formButton.disabled = !isFormButtonDisabled;
   formButton.innerHTML = isFormButtonDisabled
     ? 'Load'
-    : `Loading... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+    : `Loading... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-bottom: 2px;"></span>`;
   isFormButtonDisabled = !isFormButtonDisabled;
 };
 
 const showError = (message) => {
-  errorAlert.innerHTML = message;
+  errorAlert.innerText = message;
   errorAlert.style.display = 'block';
 };
 
@@ -42,13 +42,14 @@ const insertMessagesIntoDOM = (table, messages, videoId) => {
 };
 
 const fetchChatInfo = async (taskId) => {
-  const PREVIEW_LIMIT = 5000;
+  const PREVIEW_LIMIT = 2000;
   tableBody.innerHTML = '';
   const response = await fetch(`/chat/${taskId}`);
   if (response.ok) {
     const data = await response.json();
 
     const total = document.getElementById('total');
+    const totalHelperText = document.getElementById('totalHelper');
     const downloadCsvButton = document.getElementById('downloadCsvButton');
 
     downloadCsvButton.onclick = async () => {
@@ -66,20 +67,21 @@ const fetchChatInfo = async (taskId) => {
       }
     };
 
-    total.innerHTML = data.length;
+    total.innerText = data.length;
+    document.getElementById('downloadCsvButton').disabled = false;
+    totalHelperText.innerText = '';
     if (!data.length) {
-      const tryDifferentHelperText = document.createElement('span');
-      tryDifferentHelperText.innerHTML = 'Maybe try different filters?';
-      total.parentElement.appendChild(tryDifferentHelperText);
+      totalHelperText.innerText = 'Maybe try different filters?';
+      document.getElementById('downloadCsvButton').disabled = true;
     }
     if (data.length > PREVIEW_LIMIT) {
       const loadAnywayLink = document.createElement('a');
-      loadAnywayLink.innerHTML = 'Show preview anyway';
+      loadAnywayLink.innerText = 'Show preview anyway';
       loadAnywayLink.className = 'link-info';
       loadAnywayLink.href = '#';
       loadAnywayLink.onclick = () => insertMessagesIntoDOM(tableBody, data, taskId);
-      total.parentElement.insertAdjacentText('beforeend', `Preview for more than ${PREVIEW_LIMIT} messages is disabled by default. `);
-      total.parentElement.appendChild(loadAnywayLink);
+      totalHelperText.innerText = `Preview for more than ${PREVIEW_LIMIT} messages is disabled by default. `;
+      totalHelperText.appendChild(loadAnywayLink);
     } else {
       insertMessagesIntoDOM(tableBody, data, taskId);
     }

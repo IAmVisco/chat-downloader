@@ -58,7 +58,7 @@ def get_chat(task_id):
 @app.route('/chat/<task_id>/csv', methods=['GET'])
 def download_csv(task_id):
     task = celery.AsyncResult(task_id)
-    if task.state == 'SUCCESS':
+    if task.state == 'SUCCESS' and len(task.result):
         filename = f'{task_id}.csv'
         with open(filename, 'w', newline='', encoding='utf-8') as output_file:
             dict_writer = csv.DictWriter(output_file, task.result[0].keys())
