@@ -1,9 +1,10 @@
 import os
 from datetime import timedelta
+
 from celery import Celery
 from celery.signals import after_task_publish
 from chat_downloader import ChatDownloader
-from chat_downloader.errors import NoChatReplay
+from chat_downloader.errors import NoChatReplay, VideoUnplayable
 
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
@@ -11,6 +12,7 @@ celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://lo
 celery.conf.result_expires = timedelta(weeks=1)
 
 CUSTOM_SENT_STATE = 'SENT'
+
 
 @after_task_publish.connect
 def update_sent_state(sender=None, headers=None, **kwargs):
@@ -36,5 +38,5 @@ def retrieve_chat(url, sc_only):
             })
 
         return messages
-    except NoChatReplay as ex:
+    except (NoChatReplay, VideoUnplayable) as ex:
         return str(ex)
