@@ -2,14 +2,14 @@ name: Deploy frontend
 
 on:
   push:
-    branches: 
+    branches:
       - master
     paths:
       - frontend/**
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,6 +19,7 @@ jobs:
           node-version: 16.x
       - name: Build
         run: |
+          cd frontend
           npm ci
           npm build
       - name: Deploy
