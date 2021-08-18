@@ -1,0 +1,28 @@
+name: Deploy backend
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger docker-compose rebuild
+        uses: appleboy/ssh-action@master
+        env:
+          PROJECT_PATH: ${{ secrets.BACKEND_PATH }}
+        with:
+          host: ${{ secrets.BACKEND_HOST }}
+          username: ${{ secrets.BACKEND_USERNAME }}
+          key: ${{ secrets.BACKEND_KEY }}
+          envs: PROJECT_PATH
+          script: |
+            #!/bin/bash
+            set -ex
+
+            cd $PROJECT_PATH
+            git pull
+            docker-compose up -d --build
