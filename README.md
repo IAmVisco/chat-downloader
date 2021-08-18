@@ -1,5 +1,8 @@
 # YouTube Chat Downloader
 
-Basically a web UI for [this CLI tool](https://github.com/xenova/chat-downloader)
+![Frontend status](https://github.com/IAmVisco/chat-downloader/actions/workflows/frontend.yml/badge.svg)
+![Backend status](https://github.com/IAmVisco/chat-downloader/actions/workflows/backend.yml/badge.svg)
 
-Very WIP
+---
+
+Basically a web UI for [this CLI tool](https://github.com/xenova/chat-downloader)

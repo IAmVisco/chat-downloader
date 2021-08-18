@@ -5,7 +5,8 @@ on:
     branches:
       - master
     paths-ignore:
-      - 'frontend/**'
+      - frontend/**
+      - .github/**
   workflow_dispatch:
 
 jobs:
