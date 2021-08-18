@@ -17,20 +17,29 @@ interface SuperChat {
 type FormData = {
   url: string;
   scOnly: boolean;
-}
+};
 
 export const App = () => {
   const formData = JSON.parse(localStorage.getItem('cachedFormData') || '{}');
   const { register, handleSubmit } = useForm<FormData>({ defaultValues: { scOnly: true, ...formData } });
   const [filter, setFilter] = useState('');
-  const [{ taskId, videoId }, setTaskData] = useState<{ taskId?: string, videoId?: string }>({});
+  const [{ taskId, videoId }, setTaskData] = useState<{ taskId?: string; videoId?: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [scData, setScData] = useState<SuperChat[] | null>(null);
+  const [filteredScData, setFilteredScData] = useState<SuperChat[]>([]);
 
   useEffect(() => {
     fetch(backendUrl).catch(() => setError('⚠ Backend unavailable ⚠'));
   }, []);
+
+  useEffect(() => {
+    const filterRegex = new RegExp(filter, 'i');
+    const filteredData = scData?.filter((sc) =>
+      filter ? (sc.message && sc.message.match(filterRegex)) || (sc.author && sc.author.match(filterRegex)) : sc
+    );
+    setFilteredScData(filteredData || []);
+  }, [scData, filter]);
 
   const submitForm: SubmitHandler<FormData> = async (data) => {
     setError(null);
@@ -92,7 +101,7 @@ export const App = () => {
   };
 
   return (
-    <Container fluid="xl">
+    <Container fluid="xl" style={{ overflowX: 'auto' }}>
       <Row>
         <Col>
           <h1>Chat Downloader</h1>
@@ -103,58 +112,74 @@ export const App = () => {
         <Form.Group as={Row} controlId="formSearch">
           <Col>
             <Form.Control
-              type="search" className="mx-0" required tabIndex={1} placeholder="YouTube Link" {...register('url')} />
+              type="search"
+              className="mx-0"
+              required
+              tabIndex={1}
+              placeholder="YouTube Link"
+              {...register('url')}
+            />
           </Col>
           <Button variant="primary" type="submit" className="col-3" tabIndex={3} disabled={fetching}>
-            {fetching ? (<Spinner animation="border" size="sm" />) : 'Load'}
+            {fetching ? <Spinner animation="border" size="sm" /> : 'Load'}
           </Button>
           <Form.Group as={Row} className="my-3">
             <Col>
-              <Form.Check
-                type="checkbox" label="Super Chats only" tabIndex={2} {...register('scOnly')} />
+              <Form.Check type="checkbox" label="Super Chats only" tabIndex={2} {...register('scOnly')} />
             </Col>
           </Form.Group>
         </Form.Group>
       </Form>
 
-      {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
 
-      {scData ?
+      {scData ? (
         <>
           <Row className="pb-3">
             <Col md={4}>
               <h3>Chat messages</h3>
-              {scData.length
-                ? <small>{filter ? 'Showing' : 'Loading'} {
-                  scData.filter(sc => filter ? sc.message && sc.message.match(new RegExp(filter, 'i')) : sc).length
-                } messages.</small>
-                : <small>Loaded {scData.length} messages. Maybe try different filters?</small>
-              }
+              {scData.length ? (
+                <small>
+                  {filter ? 'Showing' : 'Loading'} {filteredScData.length} messages.
+                </small>
+              ) : (
+                <small>Loaded {scData.length} messages. Maybe try different filters?</small>
+              )}
             </Col>
             <Col md={4}>
-              <Form.Control type="search" className="mb-4" placeholder="Search message..." value={filter}
-                            onChange={(e) => setFilter(e.target.value)} />
+              <Form.Control
+                type="search"
+                className="mb-4"
+                placeholder="Search author or message..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
             </Col>
             <Col md={4} style={{ textAlign: 'right' }}>
-              <Button variant="success" onClick={downloadCSV}>Download CSV</Button>
+              <Button variant="success" onClick={downloadCSV}>
+                Download CSV
+              </Button>
             </Col>
           </Row>
+
           <Table variant="dark" hover>
             <thead>
-            <tr>
-              <th>Time</th>
-              <th>Amount</th>
-              <th>Author</th>
-              <th>Message</th>
-            </tr>
+              <tr>
+                <th>Time</th>
+                <th>Amount</th>
+                <th>Author</th>
+                <th>Message</th>
+              </tr>
             </thead>
             <tbody>
-            {scData
-              .filter(sc => filter ? sc.message && sc.message.match(new RegExp(filter, 'i')) : sc)
-              .map((sc, i) => (
+              {filteredScData.map((sc, i) => (
                 <tr key={i}>
-                  <td><a
-                    href={`https://youtu.be/${videoId}?t=${sc.time > 0 ? sc.time.toFixed(0) : 0}`}>{sc.time_text}</a>
+                  <td>
+                    <a href={`https://youtu.be/${videoId}?t=${sc.time > 0 ? sc.time.toFixed(0) : 0}`}>{sc.time_text}</a>
                   </td>
                   <td>{sc.amount || '-'}</td>
                   <td>{sc.author}</td>
@@ -164,7 +189,7 @@ export const App = () => {
             </tbody>
           </Table>
         </>
-        : null}
+      ) : null}
     </Container>
   );
 };
