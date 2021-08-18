@@ -126,7 +126,7 @@ export const App = () => {
               <h3>Chat messages</h3>
               {scData.length
                 ? <small>{filter ? 'Showing' : 'Loading'} {
-                  scData.filter(sc => filter ? sc.message && sc.message.match(filter) : sc).length
+                  scData.filter(sc => filter ? sc.message && sc.message.match(new RegExp(filter, 'i')) : sc).length
                 } messages.</small>
                 : <small>Loaded {scData.length} messages. Maybe try different filters?</small>
               }
@@ -150,7 +150,7 @@ export const App = () => {
             </thead>
             <tbody>
             {scData
-              .filter(sc => filter ? sc.message && sc.message.match(filter) : sc)
+              .filter(sc => filter ? sc.message && sc.message.match(new RegExp(filter, 'i')) : sc)
               .map((sc, i) => (
                 <tr key={i}>
                   <td><a
