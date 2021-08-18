@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/chat-downloader/static/css/main.69e30999.chunk.css",
-    "main.js": "/chat-downloader/static/js/main.bd01e7e8.chunk.js",
-    "main.js.map": "/chat-downloader/static/js/main.bd01e7e8.chunk.js.map",
-    "runtime-main.js": "/chat-downloader/static/js/runtime-main.32a3f3fa.js",
-    "runtime-main.js.map": "/chat-downloader/static/js/runtime-main.32a3f3fa.js.map",
-    "static/js/2.d6e43b25.chunk.js": "/chat-downloader/static/js/2.d6e43b25.chunk.js",
-    "static/js/2.d6e43b25.chunk.js.map": "/chat-downloader/static/js/2.d6e43b25.chunk.js.map",
-    "index.html": "/chat-downloader/index.html",
-    "static/css/main.69e30999.chunk.css.map": "/chat-downloader/static/css/main.69e30999.chunk.css.map",
-    "static/js/2.d6e43b25.chunk.js.LICENSE.txt": "/chat-downloader/static/js/2.d6e43b25.chunk.js.LICENSE.txt"
+    "main.css": "/static/css/main.69e30999.chunk.css",
+    "main.js": "/static/js/main.bd01e7e8.chunk.js",
+    "main.js.map": "/static/js/main.bd01e7e8.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.8233b8b5.js",
+    "runtime-main.js.map": "/static/js/runtime-main.8233b8b5.js.map",
+    "static/js/2.d6e43b25.chunk.js": "/static/js/2.d6e43b25.chunk.js",
+    "static/js/2.d6e43b25.chunk.js.map": "/static/js/2.d6e43b25.chunk.js.map",
+    "index.html": "/index.html",
+    "static/css/main.69e30999.chunk.css.map": "/static/css/main.69e30999.chunk.css.map",
+    "static/js/2.d6e43b25.chunk.js.LICENSE.txt": "/static/js/2.d6e43b25.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.32a3f3fa.js",
+    "static/js/runtime-main.8233b8b5.js",
     "static/js/2.d6e43b25.chunk.js",
     "static/css/main.69e30999.chunk.css",
     "static/js/main.bd01e7e8.chunk.js"
