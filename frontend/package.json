@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://iamvisco.github.io/chat-downloader",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
