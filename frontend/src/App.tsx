@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+const LOAD_LIMIT = 2000;
 const fetchRetry = fetchBuilder(window.fetch);
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
-interface SuperChat {
+interface ChatMessage {
   time: number;
   time_text: string;
   amount: string;
@@ -19,15 +20,29 @@ type FormData = {
   scOnly: boolean;
 };
 
+const getHostLink = (msg: ChatMessage, host: string, videoId: string) => {
+  switch (host) {
+    case 'youtube.com':
+    case 'youtu.be':
+    case 'www.youtube.com':
+      return `https://youtu.be/${videoId}?t=${msg.time > 0 ? msg.time.toFixed(0) : 0}`;
+    case 'twitch.tv':
+      return `https://twitch.tv/videos/${videoId}?t=${msg.time > 0 ? msg.time.toFixed(0) : 0}s`;
+    default:
+      return '';
+  }
+};
+
 export const App = () => {
   const formData = JSON.parse(localStorage.getItem('cachedFormData') || '{}');
   const { register, handleSubmit } = useForm<FormData>({ defaultValues: { scOnly: true, ...formData } });
   const [filter, setFilter] = useState('');
-  const [{ taskId, videoId }, setTaskData] = useState<{ taskId?: string; videoId?: string }>({});
+  const [{ taskId, videoId, host }, setTaskData] = useState<{ taskId?: string; videoId?: string; host?: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
-  const [scData, setScData] = useState<SuperChat[] | null>(null);
-  const [filteredScData, setFilteredScData] = useState<SuperChat[]>([]);
+  const [chatData, setChatData] = useState<ChatMessage[] | null>(null);
+  const [filteredChatData, setFilteredChatData] = useState<ChatMessage[]>([]);
+  const [showExtended, setShowExtended] = useState(false);
 
   useEffect(() => {
     fetch(backendUrl).catch(() => setError('⚠ Backend unavailable ⚠'));
@@ -35,17 +50,18 @@ export const App = () => {
 
   useEffect(() => {
     const filterRegex = new RegExp(filter, 'i');
-    const filteredData = scData?.filter((sc) =>
+    const filteredData = chatData?.filter((sc) =>
       filter ? (sc.message && sc.message.match(filterRegex)) || (sc.author && sc.author.match(filterRegex)) : sc
     );
-    setFilteredScData(filteredData || []);
-  }, [scData, filter]);
+    setFilteredChatData(filteredData || []);
+  }, [chatData, filter]);
 
   const submitForm: SubmitHandler<FormData> = async (data) => {
     setError(null);
     setTaskData({});
-    setScData(null);
+    setChatData(null);
     setFetching(true);
+    setShowExtended(false);
     const body = JSON.stringify(data);
     localStorage.setItem('cachedFormData', body);
 
@@ -61,15 +77,15 @@ export const App = () => {
         throw new Error(error?.message);
       }
 
-      const { id: taskId, videoId } = await response.json();
-      setTaskData({ taskId, videoId });
+      const { id: taskId, videoId, host } = await response.json();
+      setTaskData({ taskId, videoId, host });
       fetchRetry(`${backendUrl}/chat/status/${taskId}`, {
         retryOn: async (_, __, res) => (await res?.json())?.state === 'SENT',
         retryDelay: 2000,
       }).then(async () => {
         const response = await fetch(`${backendUrl}/chat/${taskId}`);
         setFetching(false);
-        if (response.ok) setScData(await response.json());
+        if (response.ok) setChatData(await response.json());
         else {
           const error = await response.json();
           setError(error?.message);
@@ -137,17 +153,26 @@ export const App = () => {
         </Alert>
       )}
 
-      {scData ? (
+      {chatData ? (
         <>
           <Row className="pb-3">
             <Col md={4}>
               <h3>Chat messages</h3>
-              {scData.length ? (
+              {chatData.length ? (
                 <small>
-                  {filter ? 'Showing' : 'Loading'} {filteredScData.length} messages.
+                  {filter ? 'Showing' : 'Loaded'} {filteredChatData.length} messages.
+                  {chatData.length > LOAD_LIMIT &&
+                    !showExtended &&
+                    ` Preview for more than ${LOAD_LIMIT} messages is disabled by default. `}
+                  {chatData.length > LOAD_LIMIT && !showExtended && (
+                    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                    <a href="#" onClick={() => setShowExtended(true)}>
+                      Load anyway
+                    </a>
+                  )}
                 </small>
               ) : (
-                <small>Loaded {scData.length} messages. Maybe try different filters?</small>
+                <small>Loaded {chatData.length} messages. Maybe try different filters?</small>
               )}
             </Col>
             <Col md={4}>
@@ -166,28 +191,32 @@ export const App = () => {
             </Col>
           </Row>
 
-          <Table variant="dark" hover>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Amount</th>
-                <th>Author</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredScData.map((sc, i) => (
-                <tr key={i}>
-                  <td>
-                    <a href={`https://youtu.be/${videoId}?t=${sc.time > 0 ? sc.time.toFixed(0) : 0}`}>{sc.time_text}</a>
-                  </td>
-                  <td>{sc.amount || '-'}</td>
-                  <td>{sc.author}</td>
-                  <td>{sc.message || ''}</td>
+          {((chatData.length > LOAD_LIMIT && showExtended) || chatData.length < LOAD_LIMIT) && (
+            <Table variant="dark" hover>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Amount</th>
+                  <th>Author</th>
+                  <th>Message</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {filteredChatData.map((msg) => (
+                  <tr>
+                    <td>
+                      <a href={getHostLink(msg, host!, videoId!)} target="_blank" rel="noreferrer">
+                        {msg.time_text}
+                      </a>
+                    </td>
+                    <td>{msg.amount || '-'}</td>
+                    <td>{msg.author}</td>
+                    <td>{msg.message || ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
         </>
       ) : null}
     </Container>
