@@ -15,16 +15,20 @@ interface ChatMessage {
   message: string | null;
 }
 
-type FormData = {
+interface FormData {
   url: string;
   scOnly: boolean;
-};
+}
 
-const getHostLink = (msg: ChatMessage, host: string, videoId: string) => {
+interface TaskData {
+  taskId?: string;
+  videoId?: string;
+  host?: string;
+}
+
+const getHostLink = (msg: ChatMessage, host: string, videoId: string): string => {
   switch (host) {
-    case 'youtube.com':
     case 'youtu.be':
-    case 'www.youtube.com':
       return `https://youtu.be/${videoId}?t=${msg.time > 0 ? msg.time.toFixed(0) : 0}`;
     case 'twitch.tv':
       return `https://twitch.tv/videos/${videoId}?t=${msg.time > 0 ? msg.time.toFixed(0) : 0}s`;
@@ -37,7 +41,7 @@ export const App = () => {
   const formData = JSON.parse(localStorage.getItem('cachedFormData') || '{}');
   const { register, handleSubmit } = useForm<FormData>({ defaultValues: { scOnly: true, ...formData } });
   const [filter, setFilter] = useState('');
-  const [{ taskId, videoId, host }, setTaskData] = useState<{ taskId?: string; videoId?: string; host?: string }>({});
+  const [{ taskId, videoId, host }, setTaskData] = useState<TaskData>({});
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [chatData, setChatData] = useState<ChatMessage[] | null>(null);
